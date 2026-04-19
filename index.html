@@ -3,114 +3,444 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Electro Oriente - Incidentes Cloud</title>
+    <title>Electro Oriente - Sistema de Incidentes</title>
     
+    <!-- Leaflet para el mapa -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a1a12; }
-        .header { background: linear-gradient(135deg, #0a2b1e, #05140e); color: white; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
-        .header h1 { font-size: 16px; display: flex; align-items: center; gap: 8px; }
-        .btn-icon { background: rgba(255,255,255,0.15); border: none; color: white; padding: 8px 12px; border-radius: 20px; cursor: pointer; }
-        .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 12px; }
-        .kpi-card { background: white; border-radius: 12px; padding: 10px; text-align: center; }
-        .kpi-value { font-size: 24px; font-weight: bold; color: #1a472a; }
-        .kpi-title { font-size: 11px; color: #666; }
-        .main-container { padding: 12px; gap: 12px; display: flex; flex-direction: column; }
-        .map-card, .form-card, .incidents-card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; }
-        #map { height: 300px; border-radius: 12px; margin-top: 10px; }
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 10px; }
-        .photo-section { background: #f5f5f5; border-radius: 12px; padding: 12px; margin: 10px 0; }
-        .photo-buttons { display: flex; gap: 10px; margin-bottom: 12px; }
-        .photo-btn { flex: 1; padding: 10px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .photo-btn.camera { background: #1a472a; color: white; }
-        .photo-btn.gallery { background: #6c757d; color: white; }
-        .photo-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-        .preview-img { width: 70px; height: 70px; object-fit: cover; border-radius: 8px; }
-        .btn-primary { background: linear-gradient(135deg, #1a472a, #0d2818); color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; }
-        .incident-item { background: #f8f9fa; border-radius: 12px; padding: 12px; margin-bottom: 10px; cursor: pointer; border-left: 4px solid; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #0a1a12;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #0a2b1e, #05140e);
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header h1 {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-icon {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        /* KPIs */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 12px;
+        }
+        
+        .kpi-card {
+            background: white;
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .kpi-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1a472a;
+        }
+        
+        .kpi-title {
+            font-size: 11px;
+            color: #666;
+        }
+        
+        /* Contenedor principal */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            gap: 12px;
+        }
+        
+        /* Tarjetas */
+        .map-card, .form-card, .incidents-card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .map-card h3, .form-card h3, .incidents-card h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #1a472a;
+            border-left: 4px solid #ff6b35;
+            padding-left: 10px;
+        }
+        
+        #map {
+            height: 300px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+        
+        /* Formulario */
+        .form-group {
+            margin-bottom: 12px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        
+        /* Zona de fotos */
+        .photo-section {
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 10px 0;
+        }
+        
+        .photo-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .photo-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .photo-btn.camera {
+            background: #1a472a;
+            color: white;
+        }
+        
+        .photo-btn.gallery {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .photo-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .preview-img {
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #1a472a, #0d2818);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            width: 100%;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        /* Lista de incidentes */
+        .incident-item {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            border-left: 4px solid;
+        }
+        
         .incident-item.critico { border-left-color: #dc3545; }
         .incident-item.leve { border-left-color: #ffc107; }
         .incident-item.resuelto { border-left-color: #28a745; }
-        .incident-title { font-weight: bold; }
-        .incident-desc { font-size: 12px; color: #666; margin: 5px 0; }
-        .incident-photos { display: flex; gap: 5px; margin-top: 8px; flex-wrap: wrap; }
-        .incident-photo-mini { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; cursor: pointer; }
-        .incident-footer { display: flex; justify-content: space-between; font-size: 10px; color: #999; margin-top: 8px; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; }
-        .modal img { max-width: 90%; max-height: 90%; }
-        .modal-close { position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; cursor: pointer; }
-        .toast { position: fixed; bottom: 20px; left: 20px; right: 20px; background: #333; color: white; padding: 12px; border-radius: 12px; text-align: center; display: none; z-index: 1500; }
-        .search-box input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 25px; }
-        .coord-info { font-size: 11px; color: #666; margin-top: 8px; text-align: center; background: #e8f5e9; padding: 6px; border-radius: 8px; }
-        .loading { text-align: center; padding: 20px; color: #666; }
+        
+        .incident-title {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .incident-desc {
+            font-size: 12px;
+            color: #666;
+            margin: 5px 0;
+        }
+        
+        .incident-photos {
+            display: flex;
+            gap: 5px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .incident-photo-mini {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .incident-footer {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #999;
+            margin-top: 8px;
+        }
+        
+        /* Modal para fotos */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+        }
+        
+        /* Alertas */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+            display: none;
+            z-index: 1500;
+        }
+        
+        .search-box {
+            margin-bottom: 10px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 14px;
+        }
+        
+        .coord-info {
+            font-size: 11px;
+            color: #666;
+            margin-top: 8px;
+            text-align: center;
+            background: #e8f5e9;
+            padding: 6px;
+            border-radius: 8px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        /* Badge de conexión */
+        .connection-badge {
+            font-size: 10px;
+            background: #28a745;
+            padding: 4px 8px;
+            border-radius: 20px;
+            color: white;
+        }
+        
+        .connection-badge.offline {
+            background: #dc3545;
+        }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h1><i class="fas fa-cloud-upload-alt"></i> Electro Oriente - Incidentes Cloud</h1>
-    <button class="btn-icon" id="refreshBtn"><i class="fas fa-sync-alt"></i> Sincronizar</button>
+    <h1><i class="fas fa-cloud-upload-alt"></i> Electro Oriente - Incidentes</h1>
+    <div>
+        <button class="btn-icon" id="refreshBtn"><i class="fas fa-sync-alt"></i> Sincronizar</button>
+    </div>
 </div>
 
 <div class="kpi-grid">
-    <div class="kpi-card"><div class="kpi-value" id="kpiActivos">0</div><div class="kpi-title">🔴 Activos</div></div>
-    <div class="kpi-card"><div class="kpi-value" id="kpiTotal">0</div><div class="kpi-title">📍 Total</div></div>
-    <div class="kpi-card"><div class="kpi-value" id="kpiFotos">0</div><div class="kpi-title">📸 Fotos</div></div>
+    <div class="kpi-card">
+        <div class="kpi-value" id="kpiActivos">0</div>
+        <div class="kpi-title">🔴 Activos</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-value" id="kpiTotal">0</div>
+        <div class="kpi-title">📍 Total</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-value" id="kpiFotos">0</div>
+        <div class="kpi-title">📸 Fotos</div>
+    </div>
 </div>
 
 <div class="main-container">
+    <!-- Mapa -->
     <div class="map-card">
-        <h3><i class="fas fa-map-marker-alt"></i> Mapa - Haz clic para marcar</h3>
-        <div class="search-box"><input type="text" id="searchInput" placeholder="🔍 Buscar lugar (Tarapoto, Juanjuí...)" /></div>
+        <h3><i class="fas fa-map-marker-alt"></i> Mapa - Haz clic para marcar ubicación</h3>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 Buscar lugar (Tarapoto, Juanjuí, Rioja...)" />
+        </div>
         <div id="map"></div>
-        <div class="coord-info" id="coordInfo">📍 Haz clic en el mapa para seleccionar la ubicación exacta</div>
+        <div class="coord-info" id="coordInfo">
+            📍 Haz clic en el mapa para seleccionar la ubicación exacta
+        </div>
     </div>
     
+    <!-- Formulario de reporte -->
     <div class="form-card">
         <h3><i class="fas fa-plus-circle"></i> Reportar nuevo incidente</h3>
-        <div class="form-group"><label>📍 Ubicación</label><input type="text" id="incidenteNombre" placeholder="Ej: Torre Km 45" /></div>
-        <div class="form-group"><label>📏 Coordenadas (clic en mapa)</label><input type="text" id="incidenteCoords" placeholder="Haz clic en el mapa" readonly /></div>
-        <div class="form-group"><label>⚠️ Estado</label>
+        
+        <div class="form-group">
+            <label>📍 Ubicación / Nombre del punto</label>
+            <input type="text" id="incidenteNombre" placeholder="Ej: Torre Km 45, Subestación Rioja..." />
+        </div>
+        
+        <div class="form-group">
+            <label>📏 Coordenadas (automático al hacer clic)</label>
+            <input type="text" id="incidenteCoords" placeholder="Haz clic en el mapa" readonly />
+        </div>
+        
+        <div class="form-group">
+            <label>⚠️ Estado / Prioridad</label>
             <select id="incidenteEstado">
-                <option value="critico">🔴 CRÍTICO</option>
-                <option value="leve">🟡 LEVE</option>
-                <option value="resuelto">🟢 RESUELTO</option>
+                <option value="critico">🔴 CRÍTICO - Atención inmediata</option>
+                <option value="leve">🟡 LEVE - Requiere revisión</option>
+                <option value="resuelto">🟢 RESUELTO - Normalizado</option>
             </select>
         </div>
-        <div class="form-group"><label>📝 Descripción</label><textarea id="incidenteDescripcion" rows="2" placeholder="Describe el incidente..."></textarea></div>
         
+        <div class="form-group">
+            <label>📝 Descripción del incidente</label>
+            <textarea id="incidenteDescripcion" rows="2" placeholder="Describe lo que ocurre..."></textarea>
+        </div>
+        
+        <!-- Sección de fotos -->
         <div class="photo-section">
             <label><i class="fas fa-camera"></i> 📸 Evidencia fotográfica</label>
             <div class="photo-buttons">
-                <button class="photo-btn camera" onclick="tomarFoto()"><i class="fas fa-camera"></i> Tomar foto</button>
-                <button class="photo-btn gallery" onclick="subirFoto()"><i class="fas fa-image"></i> Subir foto</button>
+                <button class="photo-btn camera" onclick="tomarFoto()">
+                    <i class="fas fa-camera"></i> Tomar foto
+                </button>
+                <button class="photo-btn gallery" onclick="subirFoto()">
+                    <i class="fas fa-image"></i> Subir foto
+                </button>
             </div>
             <div id="photoPreview" class="photo-preview"></div>
+            <small style="color:#666;">📱 En celular: abre la cámara. En PC: selecciona archivos.</small>
         </div>
         
-        <button class="btn-primary" onclick="guardarIncidente()"><i class="fas fa-save"></i> Guardar incidente (se sincroniza en la nube)</button>
+        <button class="btn-primary" onclick="guardarIncidente()">
+            <i class="fas fa-save"></i> Guardar incidente (se guarda en la nube)
+        </button>
     </div>
     
+    <!-- Lista de incidentes -->
     <div class="incidents-card">
-        <h3><i class="fas fa-list"></i> Incidentes reportados (todos los usuarios)</h3>
-        <div id="incidentList" style="max-height: 400px; overflow-y: auto;"><div class="loading">Cargando incidentes...</div></div>
+        <h3><i class="fas fa-list"></i> Incidentes reportados</h3>
+        <div id="incidentList" style="max-height: 400px; overflow-y: auto;">
+            <div class="loading">Cargando incidentes...</div>
+        </div>
     </div>
 </div>
 
-<div id="imageModal" class="modal" onclick="cerrarModal()"><span class="modal-close">&times;</span><img id="modalImage" src=""></div>
+<!-- Modal para ver foto grande -->
+<div id="imageModal" class="modal" onclick="cerrarModal()">
+    <span class="modal-close">&times;</span>
+    <img id="modalImage" src="">
+</div>
+
 <div id="toast" class="toast"></div>
 
 <script>
     // ============================================
-    // CONFIGURACIÓN DE LA API (¡TU URL AQUÍ!)
+    // CONFIGURACIÓN - ¡TU URL DE APPS SCRIPT!
     // ============================================
-    const API_URL = "https://script.google.com/macros/s/AKfycbwADP2FIVTKtwKjZHyoDPEw0mPghOD6NF5xf_YCs64Z6QsDpFIvHOq7iSYMui0c2bpv/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbyau8qvYaRh8A6JdtLhGIcLW8N6afAD1JxbGoR0_NE/exec";
     
     // ============================================
     // VARIABLES GLOBALES
@@ -131,21 +461,24 @@
             const response = await fetch(API_URL);
             const data = await response.json();
             
-            if (data && data.length > 0) {
+            if (data && Array.isArray(data) && data.length > 1) {
                 // Convertir los datos de Google Sheets a nuestro formato
-                incidentes = data.map((row, index) => {
-                    if (index === 0) return null; // Saltar cabecera
-                    return {
-                        id: index,
-                        nombre: row[1] || "Sin nombre",
-                        lat: parseFloat(row[2]) || -6.4875,
-                        lng: parseFloat(row[3]) || -76.3747,
-                        estado: row[4] || "leve",
-                        descripcion: row[5] || "Sin descripción",
-                        fecha: row[0] || new Date().toLocaleString(),
-                        fotos: row[6] ? JSON.parse(row[6]) : []
-                    };
-                }).filter(i => i !== null);
+                incidentes = [];
+                for (let i = 1; i < data.length; i++) {
+                    const row = data[i];
+                    if (row && row[1]) {
+                        incidentes.push({
+                            id: i,
+                            nombre: row[1] || "Sin nombre",
+                            lat: parseFloat(row[2]) || -6.4875,
+                            lng: parseFloat(row[3]) || -76.3747,
+                            estado: row[4] || "leve",
+                            descripcion: row[5] || "Sin descripción",
+                            fecha: row[0] || new Date().toLocaleString(),
+                            fotos: row[6] ? JSON.parse(row[6]) : []
+                        });
+                    }
+                }
             }
             
             if (incidentes.length === 0) {
@@ -166,7 +499,7 @@
         incidentes = [
             { id: 1, nombre: "Subestación Tarapoto", lat: -6.4875, lng: -76.3747, estado: "resuelto", descripcion: "Operación normal", fecha: new Date().toLocaleString(), fotos: [] },
             { id: 2, nombre: "Banda de Shilcayo", lat: -6.5050, lng: -76.3800, estado: "leve", descripcion: "Sobrecarga detectada", fecha: new Date().toLocaleString(), fotos: [] },
-            { id: 3, nombre: "Torre N°12", lat: -6.5100, lng: -76.3750, estado: "critico", descripcion: "Cable dañado", fecha: new Date().toLocaleString(), fotos: [] }
+            { id: 3, nombre: "Torre N°12", lat: -6.5100, lng: -76.3750, estado: "critico", descripcion: "Cable de guardia dañado", fecha: new Date().toLocaleString(), fotos: [] }
         ];
         actualizarTodo();
     }
@@ -193,7 +526,7 @@
                 body: JSON.stringify(nuevoIncidente)
             });
             
-            // Guardar copia local
+            // Guardar copia local de respaldo
             let backup = localStorage.getItem('incidentes_backup');
             let todos = backup ? JSON.parse(backup) : [];
             todos.push(nuevoIncidente);
@@ -218,9 +551,20 @@
         map.on('click', function(e) {
             ubicacionSeleccionada = { lat: e.latlng.lat, lng: e.latlng.lng };
             document.getElementById('incidenteCoords').value = `${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`;
-            document.getElementById('coordInfo').innerHTML = `✅ Ubicación: ${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`;
+            document.getElementById('coordInfo').innerHTML = `✅ Ubicación seleccionada: ${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`;
+            
+            // Marcador temporal
+            if (window.tempMarker) map.removeLayer(window.tempMarker);
+            window.tempMarker = L.marker([e.latlng.lat, e.latlng.lng], {
+                icon: L.divIcon({
+                    html: '<i class="fas fa-map-pin" style="color:#ff6b35; font-size:24px;"></i>',
+                    iconSize: [24, 24]
+                })
+            }).addTo(map);
+            setTimeout(() => { if(window.tempMarker) map.removeLayer(window.tempMarker); }, 2000);
         });
         
+        // Búsqueda
         document.getElementById('searchInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') buscarLugar(this.value);
         });
@@ -240,22 +584,31 @@
                 document.getElementById('incidenteCoords').value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
                 mostrarToast(`📍 Encontrado: ${data[0].display_name.substring(0, 50)}`);
             } else {
-                mostrarToast('❌ No se encontró');
+                mostrarToast('❌ No se encontró la ubicación');
             }
-        } catch(e) { mostrarToast('❌ Error'); }
+        } catch(e) {
+            mostrarToast('❌ Error al buscar');
+        }
     }
     
     function cargarMarcadores() {
         markers.forEach(m => map.removeLayer(m));
         markers = [];
+        
         incidentes.forEach(inc => {
             let color = inc.estado === 'critico' ? '#dc3545' : (inc.estado === 'leve' ? '#ffc107' : '#28a745');
             let icono = L.divIcon({
-                html: `<div style="background:${color}; width:16px; height:16px; border-radius:50%; border:2px solid white;"></div>`,
+                html: `<div style="background:${color}; width:16px; height:16px; border-radius:50%; border:2px solid white; box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>`,
                 iconSize: [16, 16]
             });
-            let marker = L.marker([inc.lat, inc.lng], { icon: icono }).addTo(map)
-                .bindPopup(`<b>${inc.nombre}</b><br>${inc.estado.toUpperCase()}<br>${inc.descripcion?.substring(0, 50)}`);
+            let marker = L.marker([inc.lat, inc.lng], { icon: icono })
+                .addTo(map)
+                .bindPopup(`
+                    <b>${inc.nombre}</b><br>
+                    <span style="color:${color}">${inc.estado.toUpperCase()}</span><br>
+                    ${inc.descripcion.substring(0, 50)}<br>
+                    <small>📸 ${inc.fotos?.length || 0} fotos</small>
+                `);
             markers.push(marker);
         });
     }
@@ -282,6 +635,7 @@
     }
     
     function procesarFoto(file) {
+        if (!file) return;
         let reader = new FileReader();
         reader.onload = function(e) {
             fotosTemporales.push(e.target.result);
@@ -293,19 +647,35 @@
     function actualizarPreview() {
         let container = document.getElementById('photoPreview');
         container.innerHTML = '';
-        fotosTemporales.forEach((foto, idx) => {
+        fotosTemporales.forEach((foto, index) => {
             let div = document.createElement('div');
             div.style.position = 'relative';
             div.style.display = 'inline-block';
-            div.innerHTML = `<img src="${foto}" class="preview-img" onclick="verFoto('${foto}')"><div style="position:absolute; top:-8px; right:-8px; background:red; color:white; border-radius:50%; width:20px; height:20px; text-align:center; cursor:pointer; font-size:12px;" onclick="eliminarFoto(${idx})">×</div>`;
+            div.innerHTML = `
+                <img src="${foto}" class="preview-img" onclick="verFotoGrande('${foto}')">
+                <div style="position:absolute; top:-8px; right:-8px; background:red; color:white; border-radius:50%; width:20px; height:20px; text-align:center; cursor:pointer; font-size:12px; line-height:20px;" onclick="eliminarFotoTemp(${index})">×</div>
+            `;
             container.appendChild(div);
         });
-        if(fotosTemporales.length === 0) container.innerHTML = '<small style="color:#999;">Sin fotos seleccionadas</small>';
+        if (fotosTemporales.length === 0) {
+            container.innerHTML = '<small style="color:#999;">No hay fotos seleccionadas</small>';
+        }
+        document.getElementById('kpiFotos').innerText = incidentes.reduce((sum, i) => sum + (i.fotos?.length || 0), 0) + fotosTemporales.length;
     }
     
-    function eliminarFoto(idx) { fotosTemporales.splice(idx, 1); actualizarPreview(); }
-    function verFoto(src) { document.getElementById('modalImage').src = src; document.getElementById('imageModal').style.display = 'flex'; }
-    function cerrarModal() { document.getElementById('imageModal').style.display = 'none'; }
+    function eliminarFotoTemp(index) {
+        fotosTemporales.splice(index, 1);
+        actualizarPreview();
+    }
+    
+    function verFotoGrande(src) {
+        document.getElementById('modalImage').src = src;
+        document.getElementById('imageModal').style.display = 'flex';
+    }
+    
+    function cerrarModal() {
+        document.getElementById('imageModal').style.display = 'none';
+    }
     
     // ============================================
     // GUARDAR INCIDENTE
@@ -316,63 +686,78 @@
         let estado = document.getElementById('incidenteEstado').value;
         let descripcion = document.getElementById('incidenteDescripcion').value.trim();
         
-        if (!nombre) { mostrarToast('❌ Escribe un nombre'); return; }
-        if (!coordsText) { mostrarToast('❌ Haz clic en el mapa'); return; }
+        if (!nombre) {
+            mostrarToast('❌ Escribe un nombre para la ubicación');
+            return;
+        }
+        
+        if (!coordsText) {
+            mostrarToast('❌ Haz clic en el mapa para seleccionar la ubicación');
+            return;
+        }
         
         let partes = coordsText.split(',');
         let lat = parseFloat(partes[0]);
         let lng = parseFloat(partes[1]);
-        if (isNaN(lat) || isNaN(lng)) { mostrarToast('❌ Coordenadas inválidas'); return; }
+        
+        if (isNaN(lat) || isNaN(lng)) {
+            mostrarToast('❌ Coordenadas inválidas');
+            return;
+        }
+        
+        let ahora = new Date().toLocaleString();
         
         let nuevoIncidente = {
-            id: Date.now(),
             nombre: nombre,
             lat: lat,
             lng: lng,
             estado: estado,
             descripcion: descripcion || "Sin descripción",
-            fecha: new Date().toLocaleString(),
+            fecha: ahora,
             fotos: [...fotosTemporales]
         };
         
         await guardarIncidenteCloud(nuevoIncidente);
         
+        // Agregar a la lista local
+        nuevoIncidente.id = Date.now();
         incidentes.push(nuevoIncidente);
         
+        // Limpiar formulario
         document.getElementById('incidenteNombre').value = '';
         document.getElementById('incidenteDescripcion').value = '';
         document.getElementById('incidenteCoords').value = '';
         fotosTemporales = [];
         actualizarPreview();
+        ubicacionSeleccionada = null;
         
         actualizarTodo();
-        mostrarToast(`✅ Incidente guardado en la nube con ${nuevoIncidente.fotos.length} foto(s)`);
-        if (estado === 'critico') mostrarToast(`🚨 ALERTA: ${nombre} - CRÍTICO`);
+        mostrarToast(`✅ Incidente guardado con ${nuevoIncidente.fotos.length} foto(s)`);
+        
+        if (estado === 'critico') {
+            mostrarToast(`🚨 ALERTA: ${nombre} - Incidente CRÍTICO`);
+        }
     }
     
     // ============================================
-    // ACTUALIZAR TODO
+    // ACTUALIZAR LISTA DE INCIDENTES
     // ============================================
-    function actualizarTodo() {
-        actualizarLista();
-        actualizarContadores();
-        cargarMarcadores();
-    }
-    
     function actualizarLista() {
         let container = document.getElementById('incidentList');
-        if (!incidentes.length) {
+        let incidentesOrdenados = [...incidentes].reverse();
+        
+        if (incidentesOrdenados.length === 0) {
             container.innerHTML = '<div class="loading">No hay incidentes reportados</div>';
             return;
         }
         
         container.innerHTML = '';
-        [...incidentes].reverse().forEach(inc => {
+        incidentesOrdenados.forEach(inc => {
             let div = document.createElement('div');
             div.className = `incident-item ${inc.estado}`;
             div.innerHTML = `
                 <div class="incident-title">${inc.nombre}</div>
-                <div class="incident-desc">📝 ${inc.descripcion.substring(0, 80)}</div>
+                <div class="incident-desc">📝 ${inc.descripcion.substring(0, 80)}${inc.descripcion.length > 80 ? '...' : ''}</div>
                 <div class="incident-photos" id="fotos-${inc.id}"></div>
                 <div class="incident-footer">
                     <span>${inc.estado === 'critico' ? '🔴 CRÍTICO' : (inc.estado === 'leve' ? '🟡 LEVE' : '🟢 RESUELTO')}</span>
@@ -380,19 +765,32 @@
                     <span>⏰ ${inc.fecha?.substring(5, 16) || ''}</span>
                 </div>
             `;
-            div.onclick = () => { map.setView([inc.lat, inc.lng], 16); mostrarToast(`📍 ${inc.nombre}`); };
+            div.onclick = () => {
+                map.setView([inc.lat, inc.lng], 16);
+                mostrarToast(`📍 ${inc.nombre}`);
+            };
             container.appendChild(div);
             
+            // Agregar miniaturas de fotos
             let fotosContainer = document.getElementById(`fotos-${inc.id}`);
             if (inc.fotos && inc.fotos.length > 0) {
                 inc.fotos.slice(0, 3).forEach(foto => {
                     let img = document.createElement('img');
                     img.src = foto;
                     img.className = 'incident-photo-mini';
-                    img.onclick = (e) => { e.stopPropagation(); verFoto(foto); };
+                    img.onclick = (e) => {
+                        e.stopPropagation();
+                        verFotoGrande(foto);
+                    };
                     fotosContainer.appendChild(img);
                 });
-                if (inc.fotos.length > 3) fotosContainer.innerHTML += `<span> +${inc.fotos.length-3}</span>`;
+                if (inc.fotos.length > 3) {
+                    let mas = document.createElement('span');
+                    mas.innerHTML = ` +${inc.fotos.length - 3}`;
+                    mas.style.fontSize = '11px';
+                    mas.style.color = '#666';
+                    fotosContainer.appendChild(mas);
+                }
             } else {
                 fotosContainer.innerHTML = '<span style="font-size:10px; color:#999;">Sin fotos</span>';
             }
@@ -407,6 +805,12 @@
         document.getElementById('kpiFotos').innerText = totalFotos;
     }
     
+    function actualizarTodo() {
+        actualizarLista();
+        actualizarContadores();
+        cargarMarcadores();
+    }
+    
     function mostrarToast(msg) {
         let toast = document.getElementById('toast');
         toast.innerText = msg;
@@ -415,7 +819,7 @@
     }
     
     // ============================================
-    // INICIAR
+    // INICIALIZAR
     // ============================================
     document.getElementById('refreshBtn').addEventListener('click', () => {
         cargarIncidentesCloud();
@@ -423,7 +827,11 @@
     
     initMap();
     cargarIncidentesCloud();
-    document.addEventListener('keydown', (e) => { if(e.key === 'Escape') cerrarModal(); });
+    
+    // Cerrar modal con ESC
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') cerrarModal();
+    });
 </script>
 </body>
 </html>
